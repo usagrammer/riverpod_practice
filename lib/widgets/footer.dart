@@ -5,19 +5,19 @@ import 'package:state_notifier/state_notifier.dart';
 import 'footer_controller.dart';
 import 'footer_state.dart';
 
-class Footer extends ConsumerWidget {
-  final footer_controller;
-  final footer_state;
-  const Footer(this.footer_controller, this.footer_state);
+final footerProvider = StateNotifierProvider((ref) => FooterController());
 
+class Footer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ScopedReader watch) {
+    final footer_controller = watch(footerProvider);
+    final footer_state = watch(footerProvider.state);
+    //    final footer_state = footer_controller.state;  これはだめ
+    final currentIndex = footer_state.index;
     print('＜＜buildFooter..＞＞');
-//    final footerController = watch(footerProvider);
-    final currentIndex = footer_state;
     print(currentIndex);
     return BottomNavigationBar(
-        currentIndex: currentIndex.index,
+        currentIndex: currentIndex,
         onTap: (index) => footer_controller.changeIndex(index),
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), title: Text("index")),

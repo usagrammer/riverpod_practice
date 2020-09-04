@@ -7,10 +7,8 @@ import 'package:riverpod_practice/article_list_state.dart';
 
 //widgets//
 import 'widgets/widgets.dart';
-import 'widgets/footer_controller.dart';
 
 final articlesProvider = StateNotifierProvider((ref) => ArticleList());
-final footerProvider = StateNotifierProvider((ref) => FooterController());
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -92,9 +90,6 @@ class MyHome extends ConsumerWidget {
     print('build_Myhome...');
     final articles_controller = watch(articlesProvider);
     final articles = watch(articlesProvider.state);
-    final footer_controller = watch(footerProvider);
-//    final footer_state = footer_controller.state;  これはだめ
-    final footer_state = watch(footerProvider.state);
     return Consumer(
       builder: (context, watch, child) {
         dynamic article_list = articles.articles;
@@ -107,7 +102,7 @@ class MyHome extends ConsumerWidget {
               icon: Icon(Icons.add),
             ),
           ]),
-          bottomNavigationBar: Footer(footer_controller, footer_state),
+          bottomNavigationBar: Footer(),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               await articles_controller.postArticle();
