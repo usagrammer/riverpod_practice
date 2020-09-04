@@ -1,30 +1,137 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:dio/dio.dart';
 
-final counterProvider = StateProvider((ref) => 0);
+import 'package:riverpod_practice/article_list_state.dart';
+
+final articlesProvider = StateNotifierProvider((ref) => ArticleList());
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) => MaterialApp(home: MyHome());
+  Widget build(BuildContext context, ScopedReader watch) {
+    (() async {
+      await watch(articlesProvider).getArticles();
+    })();
+    return MaterialApp(home: MyHome());
+  }
 }
 
-class MyHome extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    final int count = useProvider(counterProvider).state;
-    return Scaffold(
-      body: Center(child: Text('$count')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read(counterProvider).state++;
-        },
+class ArticleList extends StateNotifier<ArticleListState> {
+  List articles = [];
+  bool _isLoading = false;
+//
+  ArticleList() : super(ArticleListState()) {}
+
+//  Future<void> fetch() {
+//    if (_isLoading) return null;
+//    // いい感じにfetchしてるとする
+//    state = state.copyWith(content: content);
+//  }
+
+  void setArticles(new_articles) {
+    print('＜＜setArticles...＞＞');
+    state = state.copyWith(articles: new_articles);
+    print(state.articles.length);
+  }
+
+  Future<List> getArticles() async {
+    final url = "http://192.168.1.16:3000/articles";
+
+    try {
+      Response response = await Dio().get(
+        url,
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": " Bearer hogehoge",
+          },
+        ),
+      );
+      print(response);
+      setArticles(response.data);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void postArticle() async {
+    final url = "http://192.168.1.16:3000/articles";
+    final dio = new Dio();
+
+    var payload = {
+      "article": {
+        "title": "タイトル",
+        "content": "内容",
+      }
+    };
+    var data = await dio
+        .post(
+      url,
+      data: new FormData.fromMap(payload),
+      options: Options(
+        headers: {},
       ),
+    )
+        .then((response) {
+      return response.data;
+    }).catchError((err) {
+      print(err);
+      print(err.message);
+      return null;
+    });
+  }
+}
+
+class MyHome extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    print('build_Myhome...');
+    final articles_controller = watch(articlesProvider);
+    final articles = watch(articlesProvider.state);
+    return Consumer(
+      builder: (context, watch, child) {
+        dynamic article_list = articles.articles;
+        return Scaffold(
+          body: Center(
+            child: ArticleListView(article_list),
+          ),
+          appBar: AppBar(title: Text('Hogehoge'), actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.add),
+            ),
+          ]),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              await articles_controller.postArticle();
+              await articles_controller.getArticles();
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ArticleListView extends ConsumerWidget {
+  final articles;
+  ArticleListView(this.articles);
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+//    final articles = watch(articlesProvider).state;
+    print('<<build_ListView...>>');
+    print(articles);
+    return ListView.builder(
+      itemCount: articles.length,
+      itemBuilder: (BuildContext context, int index) {
+        return ListTile(
+          title: Text("${articles[index]['title']}${index}"),
+        );
+      },
     );
   }
 }
