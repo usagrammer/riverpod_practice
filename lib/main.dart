@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_practice/widgets/foundation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 //widgets//
@@ -10,7 +11,11 @@ import 'pages/article_page/index.dart';
 import 'pages/article_page/new.dart';
 
 void main() {
-  runApp(ProviderScope(child: MyApp()));
+  runApp(
+    ProviderScope(
+      child: MaterialApp(home: Foundation()),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
